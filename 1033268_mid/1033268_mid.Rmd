@@ -307,10 +307,11 @@ ey_me_dtm <- mouth_dtm %>%
 ```
 (j) 溫量指數(warmth index)是 Kira (1945) 提出的一個生態氣候指標，其計算方式為:
 ```{r}
-# mean_MT
+# 利用mean_MT運算
 
 ma <- c()
 
+#迴圈綜合條件判斷
 for (i in 1:24) {
   if(mean_MT$x[i] > 5){
     ma[i] <- mean_MT$x[i] -5
@@ -319,6 +320,7 @@ for (i in 1:24) {
     ma[i] <- 0
   }
 }
+
 
 warmth_index <- sum(ma)
 
@@ -341,7 +343,7 @@ fread("c:/Users/U250/Downloads/ecoinfo2016fm-master/ecoinfo2016fm-master/penghu_
 ```
 (a) 請計算各島環境因子(total_cover, C, EC, ..., etc.) 的平均、 第一四分位數、中位數、第三四分位數、最大值及最小值以及標準差，並整理成如下表格：
 ```{r}
-
+#建立第一四分位數及第三四分位數函數
 q1 <- function(x){
   as.numeric(x)
   a <- quantile(x, probs = seq(0.25))
@@ -354,11 +356,13 @@ q3 <- function(x){
   return(a)
 }
 
+#利用group_by群主分類運算summarise_each
 total_cover <- 
 penghu_env %>%
   group_by(island) %>%
   summarise_each(funs(mean, q1, median, q3, min, max, sd), total_cover)
 
+#更改名稱
 total_cover$island <- 
   c('西吉嶼total_cover',
     '西嶼坪嶼total_cover',
@@ -426,11 +430,14 @@ rock_ratio$island <-
     '東嶼坪嶼rock_ratio',
     '鋤頭嶼rock_ratio')
 
+#重新排序
 TAble_2 <- rbind(total_cover[1,], C[1,], EC[1,], K[1,], Na[1,])
+#迴圈排序
 for(i in 2:5){
   TAble_2 <- rbind(TAble_2, total_cover[i,], C[i,], EC[i,], K[i,], Na[i,])
 }
 
+#更換欄位名稱
 colnames(TAble_2) <- c('  ', 'average', '1st Qua',
                        'median', '3st Qua', 'min',
                        'max', 'standard deviation') 
@@ -438,6 +445,7 @@ colnames(TAble_2) <- c('  ', 'average', '1st Qua',
 ```
 (b) 請分別列出 C, EC, K, Na, N 最高的五個樣區(plotid)
 ```{R}
+#利用select篩選arrange排序
 c_data <- penghu_env %>%
   select(island, plotid, C) %>%
   arrange(C)
