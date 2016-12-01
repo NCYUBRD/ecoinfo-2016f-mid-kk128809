@@ -333,8 +333,138 @@ warmth_index <- sum(ma)
 
 
 四. 請計算 Table 2 中的下列各子題 (30%)
+```{r}
+#
+penghu_env <-
+fread("c:/Users/U250/Downloads/ecoinfo2016fm-master/ecoinfo2016fm-master/penghu_env.csv")
 
+```
 (a) 請計算各島環境因子(total_cover, C, EC, ..., etc.) 的平均、 第一四分位數、中位數、第三四分位數、最大值及最小值以及標準差，並整理成如下表格：
+```{r}
 
+q1 <- function(x){
+  as.numeric(x)
+  a <- quantile(x, probs = seq(0.25))
+  return(a)
+}
 
+q3 <- function(x){
+  as.numeric(x)
+  a <- quantile(x, probs = seq(0.25))
+  return(a)
+}
+
+total_cover <- 
+penghu_env %>%
+  group_by(island) %>%
+  summarise_each(funs(mean, q1, median, q3, min, max, sd), total_cover)
+
+total_cover$island <- 
+  c('西吉嶼total_cover',
+    '西嶼坪嶼total_cover',
+    '東吉嶼total_cover',
+    '東嶼坪嶼total_cover',
+    '鋤頭嶼total_cover')
+
+C <- 
+penghu_env %>%
+  group_by(island) %>%
+  summarise_each(funs(mean, q1, median, q3, min, max, sd), C)
+
+C$island <- 
+  c('西吉嶼C',
+    '西嶼坪嶼C',
+    '東吉嶼C',
+    '東嶼坪嶼C',
+    '鋤頭嶼C')
+
+EC <- 
+penghu_env %>%
+  group_by(island) %>%
+  summarise_each(funs(mean, q1, median, q3, min, max, sd), EC)
+
+EC$island <- 
+  c('西吉嶼EC',
+    '西嶼坪嶼EC',
+    '東吉嶼EC',
+    '東嶼坪嶼EC',
+    '鋤頭嶼EC')
+
+K <- 
+penghu_env %>%
+  group_by(island) %>%
+  summarise_each(funs(mean, q1, median, q3, min, max, sd), K)
+
+K$island <- 
+  c('西吉嶼K',
+    '西嶼坪嶼K',
+    '東吉嶼K',
+    '東嶼坪嶼K',
+    '鋤頭嶼K')
+
+Na <- 
+penghu_env %>%
+  group_by(island) %>%
+  summarise_each(funs(mean, q1, median, q3, min, max, sd), Na)
+
+Na$island <- 
+  c('西吉嶼Na',
+    '西嶼坪嶼Na',
+    '東吉嶼Na',
+    '東嶼坪嶼Na',
+    '鋤頭嶼Na')
+
+rock_ratio <- 
+penghu_env %>%
+  group_by(island) %>%
+  summarise_each(funs(mean, q1, median, q3, min, max, sd), rock_ratio)
+
+rock_ratio$island <- 
+  c('西吉嶼rock_ratio',
+    '西嶼坪嶼rock_ratio',
+    '東吉嶼rock_ratio',
+    '東嶼坪嶼rock_ratio',
+    '鋤頭嶼rock_ratio')
+
+TAble_2 <- rbind(total_cover[1,], C[1,], EC[1,], K[1,], Na[1,])
+for(i in 2:5){
+  TAble_2 <- rbind(TAble_2, total_cover[i,], C[i,], EC[i,], K[i,], Na[i,])
+}
+
+colnames(TAble_2) <- c('  ', 'average', '1st Qua',
+                       'median', '3st Qua', 'min',
+                       'max', 'standard deviation') 
+
+```
 (b) 請分別列出 C, EC, K, Na, N 最高的五個樣區(plotid)
+```{R}
+c_data <- penghu_env %>%
+  select(island, plotid, C) %>%
+  arrange(C)
+
+c_data_w <- c_data[1:5,]
+
+EC_data <- penghu_env %>%
+  select(island, plotid, EC) %>%
+  arrange(EC)
+
+EC_data_w <- EC_data[1:5,]
+
+K_data <- penghu_env %>%
+  select(island, plotid, K) %>%
+  arrange(K)
+
+K_data_w <- K_data[1:5,]
+
+Na_data <- penghu_env %>%
+  select(island, plotid, Na) %>%
+  arrange(Na)
+
+Na_data_w <- Na_data[1:5,]
+
+N_data <- penghu_env %>%
+  select(island, plotid, N) %>%
+  arrange(N)
+
+N_data_w <- N_data[1:5,]
+```
