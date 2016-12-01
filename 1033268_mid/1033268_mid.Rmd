@@ -1,24 +1,241 @@
-期中考題目：
+#期中考題目：
 一. 請隨機產生 10000 組正整數儲存成 vector 格式，並輸出成 random10k.csv (5%)
 
+```{r}
+#設定路徑
+setwd('c://Users/U250/Documents/mid-test-ecoinfo/')
+
+#生成10000正整數
+
+int_tk <- as.integer(c(sample(10000, size = 10000)))
+
+#輸出
+write.csv(int_tk, file = "random10k.csv")
+
+```
 二. 請使用 for 迴圈列出 15 個費布納西(Fibonacci)數列 (10%)
 
+```{r}
+#建立fibonaccic函數
+fibonacci <- function(num){
+  x <- integer(num)
+  x[1] = 0
+  x[2] = 1 + x[1]
+  for (i in 3:length(x)){
+    x[i] = x[i-1] + x[i-2]
+  }
+  return(x)
+}
+
+#列出fibonacci數列前15項
+
+fib <- c(fibonacci(15))
+```
 三. 請將 sample_data.txt 輸入進 R 內，並完成以下計算 (55%)
+
+```{r}
+#載入packages
+
+library(data.table)
+
+#讀取資料
+
+semple_data <- fread('sample_data.txt', na.strings = c('-9991', -9995, -9996, -9997, -9998, -9999))
+
+#檢查前幾筆資料
+head(semple_data)
+```
 
 (a) 將 yyyymmddhh 轉成 POSIXct 時間戳記格式， 並新增為一個欄(variable)，命名為 timestamp。並將此 sample data 輸出為 sample_data_parsed.csv (以逗號分隔，具有欄位名稱)
 
+```{r}
+#時間戳記
+semple_data[, timestamp:=as.POSIXct(strptime(as.numeric(yyyymmddhh)-1, '%Y%m%d%H'))]
+
+#檢查前幾筆資料
+head(semple_data)
+
+#輸出
+write.csv(semple_data, file = "sample_data_parsed.csv" )
+
+```
+
 (b) 請計算 2014 年至 2015 年這個測站的每月平均氣溫、每月平均濕度、每月累積降水， 並用表格呈現。表格範例如下：
+
+```{r}
+#建立函數
+mean_rmna <- function(x){
+  a <- mean(as.double(x), na.rm = TRUE)
+  return(a)
+}
+
+sum_rmna <- function(x){
+  a <- sum(as.double(x), na.rm = TRUE)
+  return(a)
+}
+
+#計算這個測站的每月平均氣溫、每月平均濕度、每月累積降水
+mean_MT <- aggregate(as.numeric(semple_data$TX01),
+                      by = list(
+                        format.Date(semple_data$timestamp, '%Y-%m')
+                      ), FUN = mean_rmna)
+
+mean_MR <- aggregate(as.numeric(semple_data$RH01),
+                      by = list(
+                        format.Date(semple_data$timestamp, '%Y-%m')
+                      ), FUN = mean_rmna)
+
+sum_SP <- aggregate(as.numeric(semple_data$PP01),
+                      by = list(
+                        format.Date(semple_data$timestamp, '%Y-%m')
+                      ), FUN = sum_rmna)
+
+MT_MR_SP_Data <- 
+  t(cbind(mean_MT$x, mean_MR$x, sum_SP$x))[1:3, 1:12]
+
+as.data.table(MT_MR_SP_Data)
+
+colnames(MT_MR_SP_Data) <- 
+  c('2015-1', '2015-2', '2015-3', 
+    '2015-4', '2015-5', '2015-6', 
+    '2015-7', '2015-8', '2015-9', 
+    '2015-10', '2015-11', '2015-12')
+
+rownames(MT_MR_SP_Data) <- 
+  c('月平均氣溫', '月平均濕度', '月累積降水')
+
+list(MT_MR_SP_Data)
+```
 
 (c) 請計算 2014 年和 2015 年最冷月分別是在哪個月份？(提示：先計算月均溫)
 
+```{r}
+#載入packages
+library(dplyr)
+
+#建立中間運算data  "mean_MT_ch"
+mean_MT_ch <- mean_MT
+
+#新增一欄"year"方便計算
+mean_MT_ch <- mean_MT_ch %>% 
+  mutate(year = substr(Group.1, 1, 4))
+
+#名欄位名稱
+colnames(mean_MT_ch) <- c('year-day', 'mean_MT', 'year') 
+
+#找出各年間最低月均溫
+##利用合併相同"year"成一子集，並將子集中mean_MT的min找出建立data "a"
+a <- mean_MT_ch %>% 
+  group_by(year) %>%
+     summarise(min_MT_AY = min(mean_MT)
+               )
+
+#建立空集合
+b <- list()
+
+#利用for循環將data "a"中的資料套進mean_MT_ch篩選出"年月"
+for (i in 1:2) {
+  b[[i]] <-
+filter(mean_MT_ch, year %in% a$year[i], mean_MT == a$min_MT_AY[i])
+  }
+
+#合併for篩出的結果
+c <- rbind(b[[1]],b[[2]]) 
+
+list(c)
+
+```
 (d) 在 2015 年最冷的那個月份中，該月中每日的最低溫平均是幾度C？
+```{r}
+#建立函數
+min_rmna <- function(x){
+  a <- min(as.double(x), na.rm = TRUE)
+  return(a)
+}
 
+#計算每日最低溫
+min_MT <- aggregate(as.numeric(semple_data$TX01),
+                      by = list(
+                        format.Date(semple_data$timestamp, '%Y-%m-%d')
+                      ), FUN = min_rmna)
+
+#新增一欄"year-mouth"方便計算
+min_MT <- min_MT %>% 
+  mutate('year-mouth' = substr(Group.1, 1, 7))
+
+#名欄位名稱
+colnames(min_MT) <- c('year_mouth_day', 'min_MT', 'year_mouth') 
+
+#找出各年間最低月均溫
+##利用合併相同"year"成一子集，並將子集中mean_MT的min找出建立data "a"
+f <- min_MT %>% 
+  group_by(year_mouth) %>%
+     summarise(min_MT_AY = min(min_MT)
+               )
+e <- filter(f, year_mouth %in% '2015-01')
+
+```
 (e) 請計算 2014 年和 2015 年中，最熱的月分別是在哪個月份？
+```{r}
+#找出各年間最高月均溫
+##利用合併相同"year"成一子集，並將子集中mean_MT的max找出建立data "a"
+a <- mean_MT_ch %>% 
+  group_by(year) %>%
+     summarise(Max_MT_AY = max(mean_MT)
+               )
 
+#建立空集合
+b <- list()
+
+#利用for循環將data "a"中的資料套進mean_MT_ch篩選出"年月"
+for (i in 1:2) {
+  b[[i]] <-
+filter(mean_MT_ch, year %in% a$year[i], mean_MT == a$Max_MT_AY[i])
+  }
+
+#合併for篩出的結果
+d <- rbind(b[[1]],b[[2]]) 
+
+list(d)
+```
 (f) 請計算 2014 年最熱的月份中，該月的每日最高溫平均為幾度C?
+```{r}
+#建立函數
+max_rmna <- function(x){
+  a <- max(as.double(x), na.rm = TRUE)
+  return(a)
+}
 
+#計算每日最高溫
+max_MT <- aggregate(as.numeric(semple_data$TX01),
+                      by = list(
+                        format.Date(semple_data$timestamp, '%Y-%m-%d')
+                      ), FUN = max_rmna)
+
+#新增一欄"year-mouth"方便計算
+max_MT <- max_MT %>% 
+  mutate('year-mouth' = substr(Group.1, 1, 7))
+
+#名欄位名稱
+colnames(max_MT) <- c('year_mouth_day', 'max_MT', 'year_mouth') 
+
+#找出各年間最高月均溫
+##利用合併相同"year"成一子集，並將子集中mean_MT的max找出建立data "g"
+g <- max_MT %>% 
+  group_by(year_mouth) %>%
+     summarise(max_MT_AY = max(max_MT)
+               )
+h <- filter(g, year_mouth %in% '2014-07')
+
+list(h)
+
+```
 (g) 請算出 2014 至 2015 年中，最濕月份的平均溫度
+```{r}
 
+
+
+```
 (h) 請計算每個月的月溫差(每月最高溫減去每月最高溫，取兩年平均)，平均月溫差最大的是哪個月？
 
 (i) 請計算這兩年的年溫差平均(每年最高溫減去最低溫)
