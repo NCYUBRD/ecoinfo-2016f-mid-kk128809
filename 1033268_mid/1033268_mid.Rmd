@@ -232,17 +232,105 @@ list(h)
 ```
 (g) 請算出 2014 至 2015 年中，最濕月份的平均溫度
 ```{r}
+#找出最濕月份降雨
+i <- sum_SP %>% 
+   summarise(max_sp = max(x)
+               )
+
+#透過最濕月份降雨找出最濕月份
+j <- filter(sum_SP, x == i$max_sp)
+
+#透過月份找出平均溫度
+
+max_pmo <- filter(mean_MT, Group.1 %in% j$Group.1)
+
+
+```
+(h) 請計算每個月的平均日溫差(每日最高溫減去每日最低溫，取每月平均)，平均日溫差最大的是哪個月？
+```{r}
+#前面計算過每日最高溫max_MT & 最低溫min_MT
+#計算日溫差
+Day_dtm <- max_MT
+Day_dtm$x <- max_MT$x-min_MT$x 
+
+#名欄位名稱
+colnames(Day_dtm) <- c('year_mouth_day', 'd_dtm') 
+
+#新增一欄"year-mouth"方便計算
+Day_dtm <- Day_dtm %>% 
+  mutate('year_mouth' = substr(Day_dtm$year_mouth_day, 1, 7))
+
+#平均日溫差
+em_me_dtm <- Day_dtm %>% 
+  group_by(year_mouth) %>%
+     summarise(em_me_dtm = mean(d_dtm))
+
+#找出平均日溫差最大值
+k <- em_me_dtm %>% 
+   summarise(em_me_dtm_max = max(em_me_dtm)
+               )
+
+#透過平均日溫差最大值找出平均日溫差最大的月份
+em_me_dtm_max_mouth <- filter(em_me_dtm, em_me_dtm == k$em_me_dtm_max)
+
+
+```
+(i) 請計算這兩年的年溫差平均(每年最高溫減去最低溫)
+```{r}
+#
+max_MT_m <- aggregate(as.numeric(semple_data$TX01),
+                      by = list(
+                        format.Date(semple_data$timestamp, '%Y-%m')
+                      ), FUN = max_rmna)
+min_MT_m <- aggregate(as.numeric(semple_data$TX01),
+                      by = list(
+                        format.Date(semple_data$timestamp, '%Y-%m')
+                      ), FUN = min_rmna)
+
+#
+#計算  溫差
+mouth_dtm <- max_MT_m
+mouth_dtm$x <- max_MT_m$x-min_MT_m$x 
+
+#名欄位名稱
+colnames(mouth_dtm) <- c('year_mouth', 'm_dtm') 
+
+#新增一欄"year"方便計算
+mouth_dtm <- mouth_dtm %>% 
+  mutate('year' = substr(year_mouth, 1, 4))
+
+#平均  溫差
+ey_me_dtm <- mouth_dtm %>% 
+  group_by(year) %>%
+     summarise(ey_me_dtm = mean(m_dtm))
+
+```
+(j) 溫量指數(warmth index)是 Kira (1945) 提出的一個生態氣候指標，其計算方式為:
+```{r}
+# mean_MT
+
+ma <- c()
+
+for (i in 1:24) {
+  if(mean_MT$x[i] > 5){
+    ma[i] <- mean_MT$x[i] -5
+    }
+  else if (mean_MT$x <= 5){
+    ma[i] <- 0
+  }
+}
+
+warmth_index <- sum(ma)
+
+```
+(k) 請使用 climatol package 繪製 2014 至 2015 的生態氣候圖(Ecological climate diagrams)。 提示：你需要計算出每個月的累積降水平均、每日最高溫平均、每日最低溫平均、每月絕對最低溫。 可參考繪製生態氣候圖
+```{r}
+
 
 
 
 ```
-(h) 請計算每個月的月溫差(每月最高溫減去每月最高溫，取兩年平均)，平均月溫差最大的是哪個月？
 
-(i) 請計算這兩年的年溫差平均(每年最高溫減去最低溫)
-
-(j) 溫量指數(warmth index)是 Kira (1945) 提出的一個生態氣候指標，其計算方式為:
-
-(k) 請使用 climatol package 繪製 2014 至 2015 的生態氣候圖(Ecological climate diagrams)。 提示：你需要計算出每個月的累積降水平均、每日最高溫平均、每日最低溫平均、每月絕對最低溫。 可參考繪製生態氣候圖
 
 四. 請計算 Table 2 中的下列各子題 (30%)
 
