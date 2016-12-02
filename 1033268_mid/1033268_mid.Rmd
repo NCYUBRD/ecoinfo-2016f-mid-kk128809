@@ -40,7 +40,8 @@ library(data.table)
 
 #讀取資料
 
-semple_data <- fread('sample_data.txt', na.strings = c('-9991', -9995, -9996, -9997, -9998, -9999))
+semple_data <- fread('sample_data.txt', 
+                     na.strings = c('-9991', -9995, -9996, -9997, -9998, -9999))
 
 #檢查前幾筆資料
 head(semple_data)
@@ -327,10 +328,35 @@ warmth_index <- sum(ma)
 ```
 (k) 請使用 climatol package 繪製 2014 至 2015 的生態氣候圖(Ecological climate diagrams)。 提示：你需要計算出每個月的累積降水平均、每日最高溫平均、每日最低溫平均、每月絕對最低溫。 可參考繪製生態氣候圖
 ```{r}
+library(climatol)
+library(Cairo)
 
+#設定字型
+CairoFonts(regular = "Noto Sans T Chinese:style=Light", 
+           bold = "Noto Sans T Chinese:style=Regular")
+par(family = 'Noto Sans T Chinese')
 
+#自訂義生態氣候圖
+exportEcoDiag <- function(climfile, station_name, filename, elevation, data_period){
+  climdata <- read.csv(climfile, row.names = 1)
+  Cairo(1600, 1600, file = filename, type = "png", bg = "white", dpi = 300)
+  diagwl(climdata, est = station_name, alt = elevation, per = data_period)
+  dev.off()
+}
 
+#做表
+##月的累積降水平均
+semple_data[, year:=format.Date(timestamp, '%Y')]
+semple_data[, mouth:=format.Date(timestamp, '%m')]
 
+###挑出2014年
+####Error
+semple_data$year <- as.character(semple_data$year)
+as.data.frame(semple_data)
+
+filter(semple_data, year %in% c('2014'))
+
+list(semple_data)
 ```
 
 
