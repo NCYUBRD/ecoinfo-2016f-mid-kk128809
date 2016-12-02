@@ -29,14 +29,16 @@ fibonacci <- function(num){
 
 #列出fibonacci數列前15項
 
-fib <- c(fibonacci(15))
+ans_fib <- c(fibonacci(15))
 ```
 三. 請將 sample_data.txt 輸入進 R 內，並完成以下計算 (55%)
 
 ```{r}
-#載入packages
-
+#載入data.table
 library(data.table)
+
+#設定路徑
+setwd('c://Users/U250/Documents/mid-test-ecoinfo/')
 
 #讀取資料
 
@@ -106,6 +108,8 @@ rownames(MT_MR_SP_Data) <-
   c('月平均氣溫', '月平均濕度', '月累積降水')
 
 list(MT_MR_SP_Data)
+
+ans_three_b <- MT_MR_SP_Data
 ```
 
 (c) 請計算 2014 年和 2015 年最冷月分別是在哪個月份？(提示：先計算月均溫)
@@ -350,13 +354,53 @@ semple_data[, year:=format.Date(timestamp, '%Y')]
 semple_data[, mouth:=format.Date(timestamp, '%m')]
 
 ###挑出2014年
-####Error
-semple_data$year <- as.character(semple_data$year)
-as.data.frame(semple_data)
+semple_data_2014 <- filter(semple_data, year == '2014')
 
-filter(semple_data, year %in% c('2014'))
+###aggregate
+mouth_mean_pp <-
+aggregate(as.numeric(semple_data_2014$PP01),
+          by = list(semple_data_2014$mouth),
+          FUN = mean_rmna
+          )
 
-list(semple_data)
+##每日最高溫平均：利用max_MT_m
+max_MT_m_2014 <- max_MT_m[1:12, 'x']
+
+list(max_MT_m_2014)
+
+##每日最低溫平均：利用min_MT_m
+min_MT_m_2014 <- min_MT_m[1:12, 'x']
+
+list(min_MT_m_2014)
+
+##每月絕對最低溫
+mouth_min_mt <-
+aggregate(as.numeric(semple_data_2014$TX01),
+          by = list(semple_data_2014$mouth),
+          FUN = min_rmna
+          )
+
+list(mouth_min_mt)
+
+#合併資料
+data <- t(cbind(mouth_mean_pp$x, min_MT_m_2014, min_MT_m_2014, mouth_min_mt$x))
+
+colnames(data) <- 
+  c('jan', 'feb', 'mar', 
+    'apr', 'may', 'jun', 
+    'jul', 'aug', 'sep', 
+    'oct', 'nov', 'dec')
+
+rownames(data) <-
+  c('prec.', 'max.t', 'min.t', 'ab.m.t.')
+
+list(data)
+
+write.csv(data, file = 'data.csv')
+
+exportEcoDiag('data.csv', 'happy_end', 'ZB1_happy_end.png','100', '2014')
+
+
 ```
 
 
